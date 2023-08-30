@@ -84,7 +84,7 @@ void MainWidget::on_record_audio_request_clicked() {
   close();
 }
 
-void MainWidget::stop_recording() { this->microphone_->stop(); }
+void MainWidget::stop_recording() {  }
 
 void MainWidget::run() {
   if (this->ui->request_csv->isChecked()) {
