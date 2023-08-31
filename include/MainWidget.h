@@ -2,10 +2,11 @@
 #define DIGITALSIGNALANALYZER_INCLUDE_MAINWIDGET_H
 
 #include <QAudioInput>
+#include <QFile>
+#include <QPointer>
 #include <QWidget>
 #include <memory>
 #include <string>
-#include <QFile>
 
 #include "Dataframe.h"
 
@@ -31,8 +32,8 @@ class MainWidget : public QWidget {
  private:
   Ui::MainWidget *ui;
   std::unique_ptr<read_file::Dataframe<float>> waves_;
-  std::unique_ptr<QAudioInput> microphone_;
-  std::unique_ptr<QFile> audio_destination_;
+  QPointer<QAudioInput> microphone_;
+  QPointer<QFile> audio_destination_;
 };
 
 #endif  // DIGITALSIGNALANALYZER_INCLUDE_MAINWIDGET_H

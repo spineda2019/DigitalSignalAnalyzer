@@ -1,5 +1,9 @@
 #include "MainWidget.h"
 
+#include <QAudioFormat>
+#include <QAudioInput>
+#include <QErrorMessage>
+#include <QFile>
 #include <QFileDialog>
 #include <QPointer>
 #include <QTableWidget>
@@ -7,7 +11,10 @@
 #include "ui_MainWidget.h"
 
 MainWidget::MainWidget(QWidget* parent)
-    : QWidget(parent), ui(new Ui::MainWidget()) {
+    : QWidget(parent),
+      ui(new Ui::MainWidget()),
+      microphone_{new QAudioInput(this)},
+      audio_destination_{new QFile(this)} {
   this->ui->setupUi(this);
   setWindowFlags(Qt::Widget | Qt::MSWindowsFixedSizeDialogHint);
 
@@ -18,7 +25,7 @@ MainWidget::MainWidget(QWidget* parent)
           SLOT(on_record_audio_request_clicked()));
 }
 
-MainWidget::~MainWidget() { delete ui; }
+MainWidget::~MainWidget() { delete this->ui; }
 
 void MainWidget::on_select_file_clicked() {
   QString n_string = ui->n_data->text();
@@ -79,12 +86,33 @@ void MainWidget::on_select_file_clicked() {
 }
 
 void MainWidget::on_record_audio_request_clicked() {
-  this->audio_destination_->setFileName(QFileDialog::getSaveFileName(
-      this, tr("Save Audio File"), QDir::homePath(), tr("Audio File (*.wav)")));
-  close();
+  QString audio_dest = QFileDialog::getSaveFileName(
+      this, tr("Save Audio File"), QDir::homePath(), tr("Audio File (*.wav)"));
+
+  if (audio_dest.isEmpty()) {
+    return;
+  }
+
+  this->audio_destination_->setFileName(audio_dest);
+  this->audio_destination_->open(QIODevice::WriteOnly | QIODevice::Truncate);
+
+  QAudioFormat* format(new QAudioFormat());
+  format->setSampleRate(8000);                   // Change to user input
+  format->setChannelCount(1);                    // Change to user input
+  format->setSampleFormat(QAudioFormat::Float);  // Change to user input
+
+  // stuff
+
+  QErrorMessage* test(new QErrorMessage(this));
+  test->showMessage("Hi");
+
+  connect(this->microphone_, SIGNAL(stateChanged(QAudio::State)), this,
+          SLOT(handleStateChanged(QAudio::State)));
+
+  delete format;
 }
 
-void MainWidget::stop_recording() {  }
+void MainWidget::stop_recording() {}
 
 void MainWidget::run() {
   if (this->ui->request_csv->isChecked()) {

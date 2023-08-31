@@ -1,6 +1,8 @@
 ﻿#include <QtWidgets/QApplication>
 #include <iostream>
 
+#include <QtGlobal>
+
 #include "MainWidget.h"
 
 int main(int argc, char* argv[]) {
