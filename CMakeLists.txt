@@ -22,7 +22,9 @@ qt_add_executable(QtCMake
 					"src/QtCMake.cpp" 
 					"src/MainWidget.ui" 
 					"src/MainWidget.cpp"
-					"include/MainWidget.h")
+					"include/MainWidget.h"
+					"src/SignalInfoWindow.cpp"
+					"include/SignalInfoWindow.h")
 
 add_subdirectory(DataframeLib)
 
