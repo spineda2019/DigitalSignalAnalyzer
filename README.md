@@ -9,6 +9,7 @@ make files for you. Open the cloned repository with Visual studio, then select
 <h2>Linux</h2>
 On Linux you can generate the makefiles on the command line. Navigate to the 
 cloned repository directory. Then execute the following commands.
+
 ```sh
 mkdir build
 cd build
