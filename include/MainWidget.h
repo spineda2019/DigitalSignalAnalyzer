@@ -3,6 +3,7 @@
 
 #include <QAudioInput>
 #include <QFile>
+#include <QMediaCaptureSession>
 #include <QPointer>
 #include <QWidget>
 #include <memory>
@@ -26,14 +27,15 @@ class MainWidget : public QWidget {
  private slots:
   void on_select_file_clicked();
   void on_record_audio_request_clicked();
-  void stop_recording();
+  void stop_recording(const QMediaRecorder &recorder);
   void run();
 
  private:
   Ui::MainWidget *ui;
   std::unique_ptr<read_file::Dataframe<float>> waves_;
   QPointer<QAudioInput> microphone_;
-  QPointer<QFile> audio_destination_;
+  QPointer<QMediaCaptureSession> capture_session_;
+  QPointer<QMediaRecorder> recorder_;
 };
 
 #endif  // DIGITALSIGNALANALYZER_INCLUDE_MAINWIDGET_H

@@ -1,22 +1,21 @@
 #include "MainWidget.h"
 
-#include <QAudioFormat>
 #include <QAudioInput>
 #include <QErrorMessage>
-#include <QFile>
 #include <QFileDialog>
+#include <QMediaCaptureSession>
+#include <QMediaRecorder>
 #include <QPointer>
 #include <QTableWidget>
 
 #include "ui_MainWidget.h"
 
 MainWidget::MainWidget(QWidget* parent)
-    : QWidget(parent),
-      ui(new Ui::MainWidget()),
-      microphone_{new QAudioInput(this)},
-      audio_destination_{new QFile(this)} {
+    : QWidget(parent), ui(new Ui::MainWidget()) {
   this->ui->setupUi(this);
-  setWindowFlags(Qt::Widget | Qt::MSWindowsFixedSizeDialogHint);
+
+  setFixedWidth(850);
+  setFixedHeight(550);
 
   connect(this->ui->select_file, SIGNAL(pressed()), this,
           SLOT(on_select_file_clicked()));
@@ -86,33 +85,23 @@ void MainWidget::on_select_file_clicked() {
 }
 
 void MainWidget::on_record_audio_request_clicked() {
-  QString audio_dest = QFileDialog::getSaveFileName(
-      this, tr("Save Audio File"), QDir::homePath(), tr("Audio File (*.wav)"));
+  QMediaCaptureSession session;
+  QAudioInput audioInput;
 
-  if (audio_dest.isEmpty()) {
-    return;
-  }
+  session.setAudioInput(&audioInput);
 
-  this->audio_destination_->setFileName(audio_dest);
-  this->audio_destination_->open(QIODevice::WriteOnly | QIODevice::Truncate);
+  QMediaRecorder recorder;
 
-  QAudioFormat* format(new QAudioFormat());
-  format->setSampleRate(8000);                   // Change to user input
-  format->setChannelCount(1);                    // Change to user input
-  format->setSampleFormat(QAudioFormat::Float);  // Change to user input
-
-  // stuff
-
-  QErrorMessage* test(new QErrorMessage(this));
-  test->showMessage("Hi");
-
-  connect(this->microphone_, SIGNAL(stateChanged(QAudio::State)), this,
-          SLOT(handleStateChanged(QAudio::State)));
-
-  delete format;
+  session.setRecorder(&recorder);
+  recorder.setQuality(QMediaRecorder::HighQuality);
+  recorder.setOutputLocation(QUrl::fromLocalFile("test.mp3"));
+  recorder.record();
+  recorder.stop();
+  close();
 }
 
-void MainWidget::stop_recording() {}
+void MainWidget::stop_recording(const QMediaRecorder& recorder) {
+}
 
 void MainWidget::run() {
   if (this->ui->request_csv->isChecked()) {
