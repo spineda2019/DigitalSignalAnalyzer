@@ -30,7 +30,7 @@ inline void CalculateFrequencyDomain(const std::vector<T>& signal,
   std::iota(array_to_fill.begin(), array_to_fill.end(), T(0));
 
   T scaler = static_cast<T>(sample_rate) / signal.size();
-  std::transform(std::execution::par, array_to_fill.begin(),
+  std::transform(array_to_fill.begin(),
                  array_to_fill.end(), array_to_fill.begin(),
                  [&scaler](T& x) { return x * scaler; });
 }
@@ -49,7 +49,7 @@ inline void CalculateDiscreteFT(const std::vector<T>& signal,
 
   // init k w/ 0,0
   constexpr std::complex<T> zero_z(T(0.0), T(0.0));
-  std::fill(std::execution::par_unseq, k.begin(), k.end(),
+  std::fill(k.begin(), k.end(),
             std::vector<std::complex<T>>{zero_z});
 
   // multiply k.T * k to create a square matrix
@@ -63,8 +63,8 @@ inline void CalculateDiscreteFT(const std::vector<T>& signal,
   constexpr std::complex<T> comp(T(0.0), T(-2.0));
   const T N = T(k.size());
   std::for_each(
-      std::execution::par_unseq, k.begin(), k.end(), [&comp, &N](auto& x) {
-        std::transform(std::execution::par, x.begin(), x.end(), x.begin(),
+      k.begin(), k.end(), [&comp, &N](auto& x) {
+        std::transform(x.begin(), x.end(), x.begin(),
                        [&comp, &N](std::complex<T>& y) {
                          return std::pow(T(2.71828),
                                          comp * T(3.141592654) * y / N);
@@ -73,7 +73,7 @@ inline void CalculateDiscreteFT(const std::vector<T>& signal,
 
   // e dot signal
   std::transform(
-      std::execution::par_unseq, k.begin(), k.end(), domain_to_fill.begin(),
+      k.begin(), k.end(), domain_to_fill.begin(),
       [&signal, &N](auto& x) {
         const std::complex<T> dot =
             std::inner_product(x.begin(), x.end(), signal.begin(),
@@ -108,7 +108,7 @@ inline void ExtractNFrequencies(const std::vector<T>& signal,
   CalculateDiscreteFT(signal, dft_domain);
 
   std::vector<T> real(signal.size() / 2);
-  std::transform(std::execution::par_unseq, dft_domain.begin(),
+  std::transform(dft_domain.begin(),
                  dft_domain.begin() + real.size(), real.begin(),
                  [](std::complex<T>& x) { return std::abs(x); });
 
@@ -143,7 +143,7 @@ inline void ExtractNAmplitudes(const std::vector<T>& signal,
   CalculateDiscreteFT(signal, dft_domain);
 
   std::vector<T> real(signal.size() / 2);
-  std::transform(std::execution::par_unseq, dft_domain.begin(),
+  std::transform(dft_domain.begin(),
                  dft_domain.begin() + real.size(), real.begin(),
                  [](std::complex<T>& x) { return std::abs(x); });
 
@@ -177,7 +177,7 @@ inline void ExtractNPhases(const std::vector<T>& signal, std::vector<T>& dest,
   CalculateDiscreteFT(signal, dft_domain);
 
   std::vector<T> real(signal.size() / 2);
-  std::transform(std::execution::par_unseq, dft_domain.begin(),
+  std::transform(dft_domain.begin(),
                  dft_domain.begin() + real.size(), real.begin(),
                  [](std::complex<T>& x) { return std::abs(x); });
 
@@ -271,7 +271,7 @@ class Dataframe {
    * @param empty_vector: Empty vector to fill with dataframe values
    */
   void Flatten(std::vector<T>& empty_vector) const {
-    std::for_each(std::execution::par_unseq, this->data_.begin(),
+    std::for_each(this->data_.begin(),
                   this->data_.end(), [&empty_vector](const std::vector<T>& x) {
                     std::for_each(x.begin(), x.end(), [&x, &empty_vector](T y) {
                       if (!std::isnan(y)) {
@@ -495,7 +495,7 @@ class Dataframe {
       this->data_[row][index] = new_column[row];
     }
 
-    // std::for_each(std::execution::par_unseq, this->data_.begin(),
+    // std::for_each(par_unseq, this->data_.begin(),
     //               this->data_.end(),
     //               [&new_column, this, index](std::vector<T>& x) {
     //                 x[index] = new_column[x - this->data_.begin()];
@@ -641,7 +641,7 @@ class Dataframe {
 
     // Find col index
     auto col_index =
-        std::find(std::execution::par_unseq, (this->headers_).begin(),
+        std::find((this->headers_).begin(),
                   (this->headers_).end(), col_name) -
         (this->headers_).begin();
 
@@ -656,7 +656,7 @@ class Dataframe {
     std::iota(col.begin(), col.end(), T(0.0));
 
     std::transform(
-        std::execution::par_unseq, col.begin(), col.end(), col.begin(),
+        col.begin(), col.end(), col.begin(),
         [this, &col_index](T& x) {
           T val{};
           // catch NaN
@@ -668,7 +668,7 @@ class Dataframe {
           return val;
         });
 
-    return std::reduce(std::execution::par_unseq, col.begin(), col.end()) /
+    return std::reduce(col.begin(), col.end()) /
            T(this->height_);
   }
 
@@ -692,7 +692,7 @@ class Dataframe {
 
       // Find col index
       auto col_index =
-          std::find(std::execution::par_unseq, (this->headers_).begin(),
+          std::find((this->headers_).begin(),
                     (this->headers_).end(), col_name) -
           (this->headers_).begin();
 
@@ -708,7 +708,7 @@ class Dataframe {
                 T(0.0));  // Fix me, complex nums can't ++
 
       std::transform(
-          std::execution::par_unseq, col.begin(), col.end(), col.begin(),
+          col.begin(), col.end(), col.begin(),
           [this, &col_index](T& x) {
             T val{};
             // catch NaN
@@ -834,7 +834,7 @@ class Dataframe {
                 T(0.0));  // Fix me, complex nums can't ++
 
       std::transform(
-          std::execution::par_unseq, col.begin(), col.end(), col.begin(),
+          col.begin(), col.end(), col.begin(),
           [this, &index](T& x) {
             T val{};
             // catch NaN
@@ -845,7 +845,7 @@ class Dataframe {
             }
             return val;
           });
-      return std::reduce(std::execution::par_unseq, col.begin(), col.end()) /
+      return std::reduce(col.begin(), col.end()) /
              T(this->height_);
     } else if (col_wise && omit_nan) {
       if (static_cast<uint64_t>(std::abs(index)) >= this->width_) {
@@ -866,7 +866,7 @@ class Dataframe {
                 T(0.0));  // Fix me, complex nums can't ++
 
       std::transform(
-          std::execution::par_unseq, col.begin(), col.end(), col.begin(),
+          col.begin(), col.end(), col.begin(),
           [this, &index](T& x) {
             T val{};
             // catch NaN
@@ -938,7 +938,7 @@ class Dataframe {
 
     // Handle NaN
     std::vector<T> row{};
-    std::for_each(std::execution::par_unseq, this->data_[index].begin(),
+    std::for_each(this->data_[index].begin(),
                   this->data_[index].end(), [this, &row](T x) {
                     if (!std::isnan(x)) {
                       detail::data_mtx.lock();
@@ -958,7 +958,7 @@ class Dataframe {
   T Median(const std::string& col_name) const {
     // Find col index
     auto col_index =
-        std::find(std::execution::par_unseq, (this->headers_).begin(),
+        std::find((this->headers_).begin(),
                   (this->headers_).end(), col_name) -
         (this->headers_).begin();
 
@@ -1097,7 +1097,7 @@ class Dataframe {
 
     this->headers_.push_back(header);
 
-    std::for_each(std::execution::par_unseq, this->data_.begin(),
+    std::for_each(this->data_.begin(),
                   this->data_.end(),
                   [](std::vector<T>& x) { x.push_back(T(0.0)); });
     this->width_++;
